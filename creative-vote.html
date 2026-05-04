@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Creative Vote — Pick the One</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============ DESIGN SYSTEM ============ */
+  :root {
+    --bg: #0e0d0b;
+    --bg-2: #161513;
+    --surface: #1c1b18;
+    --surface-2: #232220;
+    --border: #2e2d2a;
+    --border-strong: #3d3b37;
+    --text: #f4ede0;
+    --text-2: #b3ab9b;
+    --text-3: #6b6558;
+    --accent: #ff5e1f;
+    --accent-2: #ffb800;
+    --green: #4ade80;
+    --red: #f87171;
+    --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter Tight', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255,94,31,0.12), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,184,0,0.06), transparent 70%);
+  }
+
+  /* Subtle grain */
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    opacity: 0.4; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  }
+
+  .container { max-width: 1280px; margin: 0 auto; padding: 32px 28px 80px; position: relative; z-index: 2; }
+
+  /* ============ HEADER ============ */
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 28px; margin-bottom: 36px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Fraunces', serif;
+    font-size: 26px; font-weight: 900; font-style: italic;
+    letter-spacing: -0.03em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 24px var(--accent), 0 0 8px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.6; transform:scale(0.85);} }
+  .logo span { color: var(--text-2); font-weight: 400; font-style: normal; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 999px;
+    background: var(--surface); border: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-2); letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .status-dot.offline { background: var(--text-3); box-shadow: none; }
+
+  /* ============ TABS ============ */
+  .tabs { display: flex; gap: 4px; margin-bottom: 32px; padding: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; width: fit-content; }
+  .tab {
+    padding: 10px 20px; border: none; background: transparent; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--text-3); letter-spacing: 0.05em; text-transform: uppercase;
+    border-radius: 10px; transition: all 0.2s ease;
+  }
+  .tab:hover { color: var(--text-2); }
+  .tab.active { background: var(--accent); color: #1a0a00; font-weight: 700; }
+
+  /* ============ VIEW ============ */
+  .view { display: none; animation: fadeIn 0.4s ease; }
+  .view.active { display: block; }
+  @keyframes fadeIn { from {opacity:0; transform:translateY(8px);} to {opacity:1; transform:translateY(0);} }
+
+  /* ============ HERO ============ */
+  .hero {
+    margin-bottom: 40px;
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(40px, 6vw, 72px); font-weight: 900;
+    letter-spacing: -0.04em; line-height: 0.95;
+    margin-bottom: 16px;
+  }
+  .hero h1 em {
+    font-style: italic; font-weight: 400;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p { color: var(--text-2); font-size: 17px; max-width: 600px; }
+
+  /* ============ SETUP CARD ============ */
+  .setup-banner {
+    background: linear-gradient(135deg, rgba(255,94,31,0.1), rgba(255,184,0,0.04));
+    border: 1px solid rgba(255,94,31,0.3); border-radius: 16px;
+    padding: 20px 24px; margin-bottom: 32px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .setup-banner-icon { font-size: 24px; }
+  .setup-banner-text { flex: 1; font-size: 14px; color: var(--text); }
+  .setup-banner-text strong { color: var(--accent-2); }
+  .setup-banner code { background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent-2); }
+
+  /* ============ CARDS ============ */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 28px;
+  }
+  .card + .card { margin-top: 20px; }
+  .card-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  /* ============ FORM ============ */
+  label { display: block; font-size: 13px; color: var(--text-2); margin-bottom: 8px; font-weight: 500; }
+  input[type="text"], textarea {
+    width: 100%; background: var(--bg-2); border: 1px solid var(--border);
+    color: var(--text); padding: 14px 16px; border-radius: 12px;
+    font-family: inherit; font-size: 15px; transition: all 0.2s ease;
+  }
+  input[type="text"]:focus, textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(255,94,31,0.15);
+  }
+  textarea { min-height: 80px; resize: vertical; }
+
+  /* ============ FILE INPUT ============ */
+  .file-drop {
+    border: 2px dashed var(--border-strong); border-radius: 14px;
+    padding: 48px 24px; text-align: center; cursor: pointer;
+    transition: all 0.2s ease; background: var(--bg-2);
+  }
+  .file-drop:hover, .file-drop.drag {
+    border-color: var(--accent); background: rgba(255,94,31,0.05);
+  }
+  .file-drop-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.6; }
+  .file-drop-text { color: var(--text-2); font-size: 14px; }
+  .file-drop-hint { color: var(--text-3); font-size: 12px; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+  input[type="file"] { display: none; }
+
+  /* ============ THUMB GRID (admin) ============ */
+  .thumb-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px; margin-top: 20px;
+  }
+  .thumb-grid:empty { display: none; }
+  .thumb {
+    position: relative; aspect-ratio: 4/3; border-radius: 12px;
+    overflow: hidden; background: var(--bg-2); border: 1px solid var(--border);
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb-name {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 16px 12px 8px; font-size: 12px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.85));
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .thumb-remove {
+    position: absolute; top: 8px; right: 8px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(0,0,0,0.7); color: white; border: none;
+    cursor: pointer; font-size: 14px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .thumb-remove:hover { background: var(--red); }
+
+  /* ============ BUTTONS ============ */
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 24px; border-radius: 12px; border: none;
+    font-family: inherit; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s ease;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--accent); color: #1a0a00;
+    box-shadow: 0 8px 24px rgba(255,94,31,0.3);
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(255,94,31,0.45);
+  }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-ghost {
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--border); }
+  .btn-block { width: 100%; justify-content: center; }
+
+  /* ============ POLL LIST ============ */
+  .poll-list { display: grid; gap: 12px; }
+  .poll-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px; background: var(--bg-2); border: 1px solid var(--border);
+    border-radius: 14px; cursor: pointer; transition: all 0.2s ease;
+  }
+  .poll-item:hover { border-color: var(--border-strong); transform: translateX(4px); }
+  .poll-item-left { display: flex; align-items: center; gap: 16px; }
+  .poll-item-stack {
+    display: flex; flex-direction: column;
+  }
+  .poll-item-title { font-weight: 600; font-size: 15px; }
+  .poll-item-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-3); margin-top: 2px; }
+  .poll-item-vote-count {
+    background: var(--accent); color: #1a0a00; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px; font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ============ SHARE LINK MODAL ============ */
+  .share-modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 100; display: none; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+  }
+  .share-modal-bg.show { display: flex; animation: fadeIn 0.2s ease; }
+  .share-modal {
+    background: var(--surface); border: 1px solid var(--border-strong);
+    border-radius: 20px; padding: 32px; max-width: 480px; width: 90%;
+    box-shadow: var(--shadow-lg);
+  }
+  .share-modal h3 { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+  .share-modal p { color: var(--text-2); font-size: 14px; margin-bottom: 20px; }
+  .share-link-box {
+    display: flex; gap: 8px; padding: 12px; background: var(--bg-2);
+    border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px;
+  }
+  .share-link-box input {
+    flex: 1; background: transparent; border: none; color: var(--accent-2);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 8px;
+  }
+  .share-link-box input:focus { outline: none; }
+
+  /* ============ VOTE VIEW ============ */
+  .vote-meta {
+    display: flex; gap: 20px; font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--text-3); margin-bottom: 24px;
+  }
+  .name-prompt {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 32px; max-width: 480px; margin: 40px auto;
+    text-align: center;
+  }
+  .name-prompt h2 { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+  .name-prompt p { color: var(--text-2); font-size: 14px; margin-bottom: 20px; }
+
+  .vote-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .vote-card {
+    background: var(--surface); border: 2px solid var(--border);
+    border-radius: 18px; overflow: hidden; cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  .vote-card:hover {
+    transform: translateY(-6px); border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+  }
+  .vote-card.selected {
+    border-color: var(--accent); transform: translateY(-6px);
+    box-shadow: 0 16px 48px rgba(255,94,31,0.35), 0 0 0 4px rgba(255,94,31,0.15);
+  }
+  .vote-card.voted-disabled { cursor: default; opacity: 0.6; }
+  .vote-card.voted-disabled:hover { transform: none; box-shadow: none; }
+  .vote-card-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: var(--bg-2); display: block; }
+  .vote-card-body { padding: 16px 18px; }
+  .vote-card-name {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--text-3); letter-spacing: 0.05em; text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .vote-card-title { font-weight: 600; font-size: 16px; }
+  .vote-card-checkmark {
+    position: absolute; top: 12px; right: 12px;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--accent); color: #1a0a00;
+    display: none; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px;
+    box-shadow: 0 4px 16px rgba(255,94,31,0.5);
+  }
+  .vote-card.selected .vote-card-checkmark { display: flex; }
+
+  .vote-actions { margin-top: 28px; display: flex; gap: 12px; justify-content: center; }
+
+  /* ============ RESULTS ============ */
+  .results-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .results-grid { grid-template-columns: 1fr; } }
+
+  .result-row {
+    display: grid; grid-template-columns: 80px 1fr auto;
+    align-items: center; gap: 14px;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-thumb {
+    width: 80px; height: 60px; border-radius: 8px; object-fit: cover;
+    background: var(--bg-2); border: 1px solid var(--border);
+  }
+  .result-bar-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .result-bar-label { display: flex; justify-content: space-between; font-size: 13px; }
+  .result-bar-name { font-weight: 600; }
+  .result-bar-pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-2); }
+  .result-bar-track {
+    height: 8px; background: var(--bg-2); border-radius: 999px; overflow: hidden;
+  }
+  .result-bar-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    border-radius: 999px; transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    width: 0;
+  }
+  .result-count {
+    font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700;
+    background: var(--bg-2); padding: 6px 12px; border-radius: 8px;
+    border: 1px solid var(--border); min-width: 60px; text-align: center;
+  }
+  .result-row.winner .result-count { background: var(--accent); color: #1a0a00; border-color: var(--accent); }
+  .winner-badge {
+    display: inline-block; margin-left: 6px;
+    background: var(--accent-2); color: #1a0a00;
+    padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800;
+    font-family: 'JetBrains Mono', monospace; vertical-align: middle;
+  }
+
+  .voter-list { display: flex; flex-direction: column; gap: 8px; }
+  .voter-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; background: var(--bg-2);
+    border: 1px solid var(--border); border-radius: 10px;
+    animation: slideIn 0.4s ease;
+  }
+  @keyframes slideIn { from {opacity:0; transform:translateX(-10px);} to {opacity:1; transform:translateX(0);} }
+  .voter-name { font-weight: 600; font-size: 14px; }
+  .voter-choice {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-2);
+  }
+  .voter-choice-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+  }
+  .voter-time { font-size: 11px; color: var(--text-3); font-family: 'JetBrains Mono', monospace; margin-left: 8px; }
+
+  .empty {
+    padding: 48px 24px; text-align: center; color: var(--text-3);
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  }
+
+  /* ============ TOAST ============ */
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: var(--surface); border: 1px solid var(--border-strong);
+    color: var(--text); padding: 14px 24px; border-radius: 12px;
+    box-shadow: var(--shadow-lg); z-index: 200; opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-size: 14px; font-weight: 500;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--red); }
+
+  /* ============ LOADING ============ */
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.2); border-top-color: currentColor;
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ============ DETAIL VIEW ============ */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--text-3); font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
+    background: none; border: none; cursor: pointer; margin-bottom: 16px;
+    padding: 0;
+  }
+  .back-btn:hover { color: var(--accent); }
+
+  .stat-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px;
+  }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-family: 'Fraunces', serif; font-size: 36px; font-weight: 800;
+    line-height: 1;
+  }
+  .stat-value em { font-style: italic; color: var(--accent); }
+
+  @media (max-width: 720px) {
+    .stat-row { grid-template-columns: 1fr; }
+    .container { padding: 20px 16px 60px; }
+    .vote-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <span class="logo-dot"></span>
+      Critique<em style="font-style: italic;">.</em>
+      <span>creative voting</span>
+    </div>
+    <div class="status-pill" id="connStatus">
+      <span class="status-dot"></span>
+      <span id="connText">connecting</span>
+    </div>
+  </header>
+
+  <!-- SETUP BANNER -->
+  <div id="setupBanner" class="setup-banner" style="display:none;">
+    <div class="setup-banner-icon">⚙️</div>
+    <div class="setup-banner-text">
+      <strong>One-time setup:</strong> Open this file in a text editor and replace
+      <code>YOUR_JSONBIN_KEY_HERE</code> with your actual JSONBin master key.
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs" id="mainTabs">
+    <button class="tab active" data-view="adminView">⚡ Admin</button>
+    <button class="tab" data-view="voteView" id="voteTab" style="display:none;">🗳️ Vote</button>
+  </div>
+
+  <!-- ============ ADMIN VIEW ============ -->
+  <div class="view active" id="adminView">
+
+    <!-- LIST MODE -->
+    <div id="adminList">
+      <div class="hero">
+        <h1>Pick the <em>one</em>.<br/>Skip the meeting.</h1>
+        <p>Upload creatives. Share a link. Watch your team vote in real time. No more "looks great" replies on Slack.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-label">▸ Create new poll</div>
+        <label for="pollTitle">Poll title</label>
+        <input type="text" id="pollTitle" placeholder="e.g. Diwali banner — pick one" />
+
+        <div style="margin-top: 18px;">
+          <label>Upload creatives <span style="color:var(--text-3);">(2 to 8 images)</span></label>
+          <div class="file-drop" id="fileDrop">
+            <div class="file-drop-icon">⬆</div>
+            <div class="file-drop-text">Click or drop images here</div>
+            <div class="file-drop-hint">JPG / PNG / WebP — auto-compressed</div>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" multiple />
+          <div class="thumb-grid" id="thumbGrid"></div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="createBtn" style="margin-top: 24px;" disabled>
+          Create poll & get link →
+        </button>
+      </div>
+
+      <div class="card" style="margin-top: 28px;">
+        <div class="card-label">▸ Your polls</div>
+        <div class="poll-list" id="pollList">
+          <div class="empty">No polls yet. Create one above.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL MODE (results dashboard for one poll) -->
+    <div id="adminDetail" style="display:none;">
+      <button class="back-btn" id="backToList">← all polls</button>
+
+      <div class="hero" style="margin-bottom: 28px;">
+        <h1 id="detailTitle" style="font-size: clamp(32px, 5vw, 56px);"></h1>
+        <p id="detailMeta" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-3);"></p>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-label">Total Votes</div>
+          <div class="stat-value" id="statVotes">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Leader</div>
+          <div class="stat-value" id="statLeader" style="font-size:24px;"><em>—</em></div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Created</div>
+          <div class="stat-value" id="statCreated" style="font-size:18px; color:var(--text-2);">—</div>
+        </div>
+      </div>
+
+      <div class="results-grid">
+        <div class="card">
+          <div class="card-label">▸ Live results</div>
+          <div id="resultBars"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">▸ Who voted what</div>
+          <div class="voter-list" id="voterList">
+            <div class="empty">Waiting for votes...</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <button class="btn btn-ghost" id="reshareBtn">📋 Copy share link</button>
+        <button class="btn btn-ghost" id="exportBtn">⬇ Export CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ VOTE VIEW ============ -->
+  <div class="view" id="voteView">
+    <div id="voteContent">
+      <!-- Filled dynamically -->
+    </div>
+  </div>
+
+</div>
+
+<!-- SHARE MODAL -->
+<div class="share-modal-bg" id="shareModal">
+  <div class="share-modal">
+    <h3>Poll is live ⚡</h3>
+    <p>Share this link with your team. Anyone with the link can vote (once per name).</p>
+    <div class="share-link-box">
+      <input type="text" id="shareLink" readonly />
+      <button class="btn btn-primary" id="copyShareBtn">Copy</button>
+    </div>
+    <button class="btn btn-ghost btn-block" id="closeShareBtn">Got it</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* =================================================================
+   CONFIG — REPLACE THIS ONE LINE WITH YOUR JSONBIN MASTER KEY
+   ================================================================= */
+const JSONBIN_KEY = "YOUR_JSONBIN_KEY_HERE";
+
+/* =================================================================
+   STATE
+   ================================================================= */
+const STATE = {
+  uploading: [], // {id, name, dataUrl}
+  pollsIndex: null, // {binId, polls: [{id, title, createdAt, binId}]}
+  currentPoll: null,
+  currentVoter: null,
+  pollingTimer: null,
+  myVoteId: null,
+};
+
+/* =================================================================
+   HELPERS
+   ================================================================= */
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+function toast(msg, type = '') {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.className = 'toast ' + type, 2400);
+}
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+function relTime(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+
+/* =================================================================
+   IMAGE COMPRESSION
+   ================================================================= */
+async function compressImage(file, maxWidth = 1200, quality = 0.78) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxWidth) { h = h * maxWidth / w; w = maxWidth; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* =================================================================
+   JSONBIN API LAYER
+   Strategy: one "index" bin stores list of polls (in localStorage too).
+   Each poll = one bin (so writes are isolated).
+   ================================================================= */
+
+const API = 'https://api.jsonbin.io/v3';
+const HEADERS = () => ({
+  'Content-Type': 'application/json',
+  'X-Master-Key': JSONBIN_KEY,
+  'X-Bin-Versioning': 'false',
+});
+
+async function apiCreate(data, name = 'creative-vote-bin') {
+  const res = await fetch(`${API}/b`, {
+    method: 'POST',
+    headers: { ...HEADERS(), 'X-Bin-Name': name, 'X-Bin-Private': 'false' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Create failed: ${res.status}`);
+  const json = await res.json();
+  return json.metadata.id;
+}
+
+async function apiRead(binId) {
+  const res = await fetch(`${API}/b/${binId}/latest`, {
+    method: 'GET',
+    headers: { 'X-Master-Key': JSONBIN_KEY },
+  });
+  if (!res.ok) throw new Error(`Read failed: ${res.status}`);
+  const json = await res.json();
+  return json.record;
+}
+
+async function apiUpdate(binId, data) {
+  const res = await fetch(`${API}/b/${binId}`, {
+    method: 'PUT',
+    headers: HEADERS(),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Update failed: ${res.status}`);
+  return (await res.json()).record;
+}
+
+/* =================================================================
+   CONNECTION + INDEX MANAGEMENT
+   ================================================================= */
+async function ensureKey() {
+  if (!JSONBIN_KEY || JSONBIN_KEY === 'YOUR_JSONBIN_KEY_HERE') {
+    $('#setupBanner').style.display = 'flex';
+    setConn(false, 'no api key');
+    return false;
+  }
+  return true;
+}
+
+function setConn(online, label) {
+  $('#connStatus').querySelector('.status-dot').className = online ? 'status-dot' : 'status-dot offline';
+  $('#connText').textContent = label || (online ? 'live' : 'offline');
+}
+
+// Local-only: which polls "I" created (admin owns these)
+function getMyPolls() {
+  try { return JSON.parse(localStorage.getItem('cv_my_polls') || '[]'); }
+  catch { return []; }
+}
+function saveMyPolls(polls) {
+  localStorage.setItem('cv_my_polls', JSON.stringify(polls));
+}
+
+/* =================================================================
+   FILE UPLOAD HANDLERS
+   ================================================================= */
+$('#fileDrop').addEventListener('click', () => $('#fileInput').click());
+$('#fileDrop').addEventListener('dragover', (e) => { e.preventDefault(); e.currentTarget.classList.add('drag'); });
+$('#fileDrop').addEventListener('dragleave', (e) => e.currentTarget.classList.remove('drag'));
+$('#fileDrop').addEventListener('drop', (e) => {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+});
+$('#fileInput').addEventListener('change', (e) => handleFiles(e.target.files));
+
+async function handleFiles(files) {
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    if (STATE.uploading.length >= 8) { toast('Max 8 creatives per poll', 'error'); break; }
+    try {
+      const dataUrl = await compressImage(file);
+      STATE.uploading.push({
+        id: uid(),
+        name: file.name.replace(/\.[^.]+$/, '').slice(0, 40),
+        dataUrl,
+      });
+    } catch { toast('Could not load ' + file.name, 'error'); }
+  }
+  renderThumbs();
+  updateCreateBtn();
+}
+
+function renderThumbs() {
+  const grid = $('#thumbGrid');
+  grid.innerHTML = STATE.uploading.map(c => `
+    <div class="thumb">
+      <img src="${c.dataUrl}" alt="" />
+      <div class="thumb-name">${c.name}</div>
+      <button class="thumb-remove" onclick="removeThumb('${c.id}')">×</button>
+    </div>
+  `).join('');
+}
+
+window.removeThumb = (id) => {
+  STATE.uploading = STATE.uploading.filter(c => c.id !== id);
+  renderThumbs(); updateCreateBtn();
+};
+
+function updateCreateBtn() {
+  const title = $('#pollTitle').value.trim();
+  $('#createBtn').disabled = !(title && STATE.uploading.length >= 2);
+}
+$('#pollTitle').addEventListener('input', updateCreateBtn);
+
+/* =================================================================
+   CREATE POLL
+   ================================================================= */
+$('#createBtn').addEventListener('click', async () => {
+  const title = $('#pollTitle').value.trim();
+  if (!title || STATE.uploading.length < 2) return;
+
+  const btn = $('#createBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Creating...';
+
+  try {
+    // Each creative gets a stable id
+    const creatives = STATE.uploading.map(c => ({
+      id: c.id, name: c.name, image: c.dataUrl,
+    }));
+    const pollDoc = {
+      title, createdAt: Date.now(),
+      creatives,
+      votes: [], // { voter, choice, ts }
+    };
+    const binId = await apiCreate(pollDoc, `poll-${title.slice(0,20)}`);
+
+    const myPolls = getMyPolls();
+    myPolls.unshift({ id: binId, title, createdAt: pollDoc.createdAt });
+    saveMyPolls(myPolls);
+
+    // Reset form
+    STATE.uploading = [];
+    $('#pollTitle').value = '';
+    renderThumbs();
+    updateCreateBtn();
+
+    // Show share modal + open detail view
+    showShareModal(binId);
+    renderPollList();
+    setTimeout(() => openDetail(binId), 300);
+  } catch (err) {
+    toast('Failed to create poll. Check API key.', 'error');
+    console.error(err);
+  } finally {
+    btn.innerHTML = 'Create poll & get link →';
+    updateCreateBtn();
+  }
+});
+
+/* =================================================================
+   POLL LIST RENDER
+   ================================================================= */
+async function renderPollList() {
+  const polls = getMyPolls();
+  const list = $('#pollList');
+  if (polls.length === 0) {
+    list.innerHTML = '<div class="empty">No polls yet. Create one above.</div>';
+    return;
+  }
+  list.innerHTML = polls.map(p => `
+    <div class="poll-item" data-id="${p.id}">
+      <div class="poll-item-left">
+        <div class="poll-item-stack">
+          <div class="poll-item-title">${escapeHtml(p.title)}</div>
+          <div class="poll-item-meta">${formatTime(p.createdAt)} · id ${p.id.slice(-6)}</div>
+        </div>
+      </div>
+      <div class="poll-item-vote-count" id="count-${p.id}">—</div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.poll-item').forEach(el => {
+    el.addEventListener('click', () => openDetail(el.dataset.id));
+  });
+  // Async fetch counts
+  for (const p of polls) {
+    apiRead(p.id).then(doc => {
+      const el = document.getElementById('count-' + p.id);
+      if (el) el.textContent = (doc.votes || []).length + ' vote' + ((doc.votes||[]).length===1?'':'s');
+    }).catch(() => {});
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* =================================================================
+   DETAIL VIEW (admin results dashboard)
+   ================================================================= */
+async function openDetail(binId) {
+  $('#adminList').style.display = 'none';
+  $('#adminDetail').style.display = 'block';
+  STATE.currentPoll = binId;
+
+  await refreshDetail();
+  if (STATE.pollingTimer) clearInterval(STATE.pollingTimer);
+  STATE.pollingTimer = setInterval(refreshDetail, 3000);
+}
+
+async function refreshDetail() {
+  if (!STATE.currentPoll) return;
+  try {
+    const doc = await apiRead(STATE.currentPoll);
+    setConn(true, 'live');
+    renderDetail(doc);
+  } catch (err) {
+    setConn(false, 'reconnecting');
+    console.error(err);
+  }
+}
+
+function renderDetail(doc) {
+  $('#detailTitle').textContent = doc.title;
+  $('#detailMeta').textContent = `id ${STATE.currentPoll.slice(-8)} · created ${formatTime(doc.createdAt)}`;
+  $('#statVotes').textContent = (doc.votes || []).length;
+  $('#statCreated').textContent = relTime(doc.createdAt);
+
+  // Compute counts
+  const counts = {};
+  doc.creatives.forEach(c => counts[c.id] = 0);
+  (doc.votes || []).forEach(v => { if (counts[v.choice] !== undefined) counts[v.choice]++; });
+  const total = (doc.votes || []).length;
+  const max = Math.max(0, ...Object.values(counts));
+
+  // Leader
+  const leaders = doc.creatives.filter(c => counts[c.id] === max && max > 0);
+  if (leaders.length === 0) $('#statLeader').innerHTML = '<em>—</em>';
+  else if (leaders.length === 1) $('#statLeader').textContent = leaders[0].name;
+  else $('#statLeader').innerHTML = `<em>tie (${leaders.length})</em>`;
+
+  // Result bars
+  const sorted = [...doc.creatives].sort((a, b) => counts[b.id] - counts[a.id]);
+  $('#resultBars').innerHTML = sorted.map(c => {
+    const n = counts[c.id];
+    const pct = total ? Math.round((n / total) * 100) : 0;
+    const isWinner = max > 0 && n === max;
+    return `
+      <div class="result-row ${isWinner ? 'winner' : ''}">
+        <img src="${c.image}" class="result-thumb" alt="" />
+        <div class="result-bar-wrap">
+          <div class="result-bar-label">
+            <span class="result-bar-name">${escapeHtml(c.name)}${isWinner && total > 0 ? '<span class="winner-badge">LEADER</span>' : ''}</span>
+            <span class="result-bar-pct">${pct}%</span>
+          </div>
+          <div class="result-bar-track">
+            <div class="result-bar-fill" style="width: ${pct}%"></div>
+          </div>
+        </div>
+        <div class="result-count">${n}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Voter list
+  const voters = (doc.votes || []).slice().sort((a, b) => b.ts - a.ts);
+  if (voters.length === 0) {
+    $('#voterList').innerHTML = '<div class="empty">Waiting for votes...</div>';
+  } else {
+    $('#voterList').innerHTML = voters.map(v => {
+      const c = doc.creatives.find(x => x.id === v.choice);
+      return `
+        <div class="voter-row">
+          <span class="voter-name">${escapeHtml(v.voter)}</span>
+          <span class="voter-choice">
+            <span class="voter-choice-dot"></span>
+            ${c ? escapeHtml(c.name) : '?'}
+            <span class="voter-time">${relTime(v.ts)}</span>
+          </span>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+$('#backToList').addEventListener('click', () => {
+  $('#adminList').style.display = 'block';
+  $('#adminDetail').style.display = 'none';
+  STATE.currentPoll = null;
+  if (STATE.pollingTimer) { clearInterval(STATE.pollingTimer); STATE.pollingTimer = null; }
+  renderPollList();
+});
+
+/* =================================================================
+   SHARE MODAL
+   ================================================================= */
+function showShareModal(binId) {
+  const url = `${location.origin}${location.pathname}#vote/${binId}`;
+  $('#shareLink').value = url;
+  $('#shareModal').classList.add('show');
+}
+$('#copyShareBtn').addEventListener('click', () => {
+  $('#shareLink').select();
+  navigator.clipboard.writeText($('#shareLink').value);
+  toast('Link copied!', 'success');
+});
+$('#closeShareBtn').addEventListener('click', () => $('#shareModal').classList.remove('show'));
+$('#shareModal').addEventListener('click', (e) => {
+  if (e.target.id === 'shareModal') $('#shareModal').classList.remove('show');
+});
+
+$('#reshareBtn').addEventListener('click', () => {
+  if (STATE.currentPoll) showShareModal(STATE.currentPoll);
+});
+
+/* =================================================================
+   EXPORT CSV
+   ================================================================= */
+$('#exportBtn').addEventListener('click', async () => {
+  if (!STATE.currentPoll) return;
+  try {
+    const doc = await apiRead(STATE.currentPoll);
+    const rows = [['Voter', 'Choice', 'Time']];
+    (doc.votes || []).forEach(v => {
+      const c = doc.creatives.find(x => x.id === v.choice);
+      rows.push([v.voter, c ? c.name : v.choice, new Date(v.ts).toISOString()]);
+    });
+    const csv = rows.map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${doc.title.replace(/[^a-z0-9]/gi, '_')}_votes.csv`;
+    a.click();
+  } catch (err) { toast('Export failed', 'error'); }
+});
+
+/* =================================================================
+   VOTE VIEW (for shared link)
+   ================================================================= */
+async function loadVoteView(binId) {
+  // Switch tabs
+  $$('.tab').forEach(t => t.classList.remove('active'));
+  $('#voteTab').style.display = '';
+  $('#voteTab').classList.add('active');
+  $$('.view').forEach(v => v.classList.remove('active'));
+  $('#voteView').classList.add('active');
+
+  const content = $('#voteContent');
+  content.innerHTML = '<div class="empty">Loading poll...</div>';
+
+  let doc;
+  try { doc = await apiRead(binId); setConn(true, 'live'); }
+  catch { content.innerHTML = '<div class="empty">Poll not found or link expired.</div>'; setConn(false, 'offline'); return; }
+
+  STATE.currentPoll = binId;
+
+  // Check if already voted (localStorage by binId)
+  const voterStorageKey = `cv_voted_${binId}`;
+  const stored = localStorage.getItem(voterStorageKey);
+  if (stored) {
+    const { name, choice } = JSON.parse(stored);
+    STATE.currentVoter = name;
+    STATE.myVoteId = choice;
+    renderVoteCards(doc, true);
+    return;
+  }
+
+  // Otherwise, ask for name first
+  content.innerHTML = `
+    <div class="name-prompt">
+      <h2>Welcome 👋</h2>
+      <p>What's your name? This shows up next to your vote so the team knows who picked what.</p>
+      <input type="text" id="voterNameInput" placeholder="e.g. Anand" maxlength="40" style="margin-bottom: 16px;" />
+      <button class="btn btn-primary btn-block" id="enterVoteBtn">Enter →</button>
+    </div>
+  `;
+  $('#voterNameInput').focus();
+  $('#voterNameInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') $('#enterVoteBtn').click();
+  });
+  $('#enterVoteBtn').addEventListener('click', () => {
+    const name = $('#voterNameInput').value.trim();
+    if (!name) { toast('Naam toh daal de bhai', 'error'); return; }
+    STATE.currentVoter = name;
+    renderVoteCards(doc, false);
+  });
+}
+
+function renderVoteCards(doc, alreadyVoted) {
+  const content = $('#voteContent');
+  const totalVotes = (doc.votes || []).length;
+
+  content.innerHTML = `
+    <div class="hero" style="margin-bottom: 24px;">
+      <h1 style="font-size: clamp(32px, 5vw, 56px);">${escapeHtml(doc.title)}</h1>
+      <div class="vote-meta">
+        <span>👤 voting as <strong style="color:var(--accent-2);">${escapeHtml(STATE.currentVoter)}</strong></span>
+        <span>·</span>
+        <span>${totalVotes} vote${totalVotes===1?'':'s'} so far</span>
+      </div>
+      <p style="font-size: 15px;">${alreadyVoted ? 'You already voted. Live results below ↓' : 'Click the one you like best.'}</p>
+    </div>
+
+    <div class="vote-grid" id="voteGrid">
+      ${doc.creatives.map(c => `
+        <div class="vote-card ${alreadyVoted ? 'voted-disabled' : ''} ${alreadyVoted && STATE.myVoteId === c.id ? 'selected' : ''}" data-id="${c.id}">
+          <img src="${c.image}" class="vote-card-img" alt="" />
+          <div class="vote-card-body">
+            <div class="vote-card-name">option</div>
+            <div class="vote-card-title">${escapeHtml(c.name)}</div>
+          </div>
+          <div class="vote-card-checkmark">✓</div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${!alreadyVoted ? `
+      <div class="vote-actions">
+        <button class="btn btn-primary" id="submitVoteBtn" disabled>Submit vote</button>
+      </div>
+    ` : `
+      <div id="liveResultsForVoter" style="margin-top: 32px;"></div>
+    `}
+  `;
+
+  if (alreadyVoted) {
+    renderVoterResults(doc);
+    if (STATE.pollingTimer) clearInterval(STATE.pollingTimer);
+    STATE.pollingTimer = setInterval(async () => {
+      try {
+        const fresh = await apiRead(STATE.currentPoll);
+        renderVoterResults(fresh);
+      } catch {}
+    }, 3000);
+    return;
+  }
+
+  let selected = null;
+  document.querySelectorAll('#voteGrid .vote-card').forEach(card => {
+    card.addEventListener('click', () => {
+      if (card.classList.contains('voted-disabled')) return;
+      document.querySelectorAll('#voteGrid .vote-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selected = card.dataset.id;
+      $('#submitVoteBtn').disabled = false;
+    });
+  });
+
+  $('#submitVoteBtn').addEventListener('click', async () => {
+    if (!selected) return;
+    const btn = $('#submitVoteBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Submitting...';
+    try {
+      const fresh = await apiRead(STATE.currentPoll);
+      // Remove any prior vote by same name
+      const cleaned = (fresh.votes || []).filter(v => v.voter.toLowerCase() !== STATE.currentVoter.toLowerCase());
+      cleaned.push({ voter: STATE.currentVoter, choice: selected, ts: Date.now() });
+      fresh.votes = cleaned;
+      await apiUpdate(STATE.currentPoll, fresh);
+      localStorage.setItem(`cv_voted_${STATE.currentPoll}`, JSON.stringify({ name: STATE.currentVoter, choice: selected }));
+      STATE.myVoteId = selected;
+      toast('Vote submitted ✓', 'success');
+      renderVoteCards(fresh, true);
+    } catch (err) {
+      toast('Vote failed. Try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Submit vote';
+    }
+  });
+}
+
+function renderVoterResults(doc) {
+  const target = document.getElementById('liveResultsForVoter');
+  if (!target) return;
+  const counts = {};
+  doc.creatives.forEach(c => counts[c.id] = 0);
+  (doc.votes || []).forEach(v => { if (counts[v.choice] !== undefined) counts[v.choice]++; });
+  const total = (doc.votes || []).length;
+  const max = Math.max(0, ...Object.values(counts));
+  const sorted = [...doc.creatives].sort((a, b) => counts[b.id] - counts[a.id]);
+
+  target.innerHTML = `
+    <div class="card">
+      <div class="card-label">▸ Live results · ${total} vote${total===1?'':'s'}</div>
+      ${sorted.map(c => {
+        const n = counts[c.id];
+        const pct = total ? Math.round((n / total) * 100) : 0;
+        const isWin = max > 0 && n === max;
+        return `
+          <div class="result-row ${isWin ? 'winner' : ''}">
+            <img src="${c.image}" class="result-thumb" alt="" />
+            <div class="result-bar-wrap">
+              <div class="result-bar-label">
+                <span class="result-bar-name">${escapeHtml(c.name)}${isWin && total>0 ? '<span class="winner-badge">LEADING</span>' : ''}</span>
+                <span class="result-bar-pct">${pct}%</span>
+              </div>
+              <div class="result-bar-track">
+                <div class="result-bar-fill" style="width: ${pct}%"></div>
+              </div>
+            </div>
+            <div class="result-count">${n}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+/* =================================================================
+   TAB SWITCHING + ROUTING
+   ================================================================= */
+$$('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    $$('.view').forEach(v => v.classList.remove('active'));
+    $('#' + tab.dataset.view).classList.add('active');
+  });
+});
+
+function handleRoute() {
+  const hash = location.hash;
+  if (hash.startsWith('#vote/')) {
+    const binId = hash.replace('#vote/', '');
+    loadVoteView(binId);
+  } else {
+    // Admin view
+    $('#voteTab').style.display = 'none';
+    $$('.tab').forEach(t => t.classList.remove('active'));
+    $('.tab[data-view="adminView"]').classList.add('active');
+    $$('.view').forEach(v => v.classList.remove('active'));
+    $('#adminView').classList.add('active');
+    if (STATE.pollingTimer) { clearInterval(STATE.pollingTimer); STATE.pollingTimer = null; }
+    renderPollList();
+  }
+}
+
+window.addEventListener('hashchange', handleRoute);
+
+/* =================================================================
+   INIT
+   ================================================================= */
+(async function init() {
+  const ok = await ensureKey();
+  if (!ok) return;
+  setConn(true, 'live');
+  handleRoute();
+})();
+</script>
+</body>
+</html>
