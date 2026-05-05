@@ -136,6 +136,46 @@
     color: var(--text-3);
     margin-bottom: 8px;
   }
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .section-head .label { margin-bottom: 0; }
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-3);
+    padding: 3px 9px 3px 7px;
+    border-radius: 6px;
+    font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+  }
+  .refresh-btn:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .refresh-icon {
+    display: inline-block;
+    font-size: 13px;
+    line-height: 1;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .refresh-btn.spinning .refresh-icon { transform: rotate(360deg); }
+
+  @keyframes chipFadeIn {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip {
     background: var(--surface);
@@ -148,6 +188,7 @@
     cursor: pointer;
     transition: all 0.15s;
     white-space: nowrap;
+    animation: chipFadeIn 0.25s ease-out backwards;
   }
   .chip:hover {
     background: var(--primary-soft);
@@ -446,17 +487,13 @@
     <main class="grid">
       <aside class="sidebar">
         <div>
-          <div class="label">Logistics prompts</div>
-          <div class="chips" id="chips">
-            <button class="chip" data-prompt="delivery rider on motorcycle in Indian street at golden hour, branded helmet, motion blur, cinematic photography, ultra detailed">delivery rider</button>
-            <button class="chip" data-prompt="festive Diwali sale banner for ecommerce shipping brand, gift boxes with diyas, vibrant colors, modern Indian aesthetic, hero composition">diwali sale</button>
-            <button class="chip" data-prompt="premium cardboard shipping package with branded label and twine, soft studio lighting, minimalist product photography, clean white backdrop">premium packaging</button>
-            <button class="chip" data-prompt="modern automated warehouse interior with conveyor belts and stacked packages, cool blue ambient lighting, wide angle, photorealistic">warehouse</button>
-            <button class="chip" data-prompt="courier rider zooming through monsoon rain in Mumbai street, water splashes, dramatic atmosphere, cinematic photography, motion">monsoon courier</button>
-            <button class="chip" data-prompt="freight truck on highway at sunset, golden hour, motion blur, India national highway, wide cinematic shot, atmospheric">freight truck</button>
-            <button class="chip" data-prompt="eco-friendly kraft paper shipping box with green ribbon and leaves, sustainability concept, soft natural light, editorial product photography">eco packaging</button>
-            <button class="chip" data-prompt="same-day delivery hero banner, fast motion blur, package being handed over, energetic, bold typography space, modern ecommerce">same-day hero</button>
+          <div class="section-head">
+            <div class="label">Logistics prompts</div>
+            <button type="button" class="refresh-btn" id="refreshChips" title="Get new prompt suggestions">
+              <span class="refresh-icon">↻</span> shuffle
+            </button>
           </div>
+          <div class="chips" id="chips"></div>
         </div>
 
         <form id="form">
@@ -506,6 +543,7 @@
   const metaTag = document.getElementById('metaTag');
   const downloadBtn = document.getElementById('downloadBtn');
   const chips = document.getElementById('chips');
+  const refreshChips = document.getElementById('refreshChips');
   const switcher = document.querySelector('.switcher');
   const pwOverlay = document.getElementById('pwOverlay');
   const pwForm = document.getElementById('pwForm');
@@ -537,6 +575,75 @@
     model = btn.dataset.model;
     localStorage.setItem('nimbus_model', model);
     syncModelUI();
+  });
+
+  // ============ PROMPT POOL ============
+  // Pool of logistics / shipping / ecommerce creative prompts.
+  // Refresh button picks 8 at random.
+  const PROMPT_POOL = [
+    { label: 'delivery rider', prompt: 'delivery rider on motorcycle in Indian street at golden hour, branded helmet, motion blur, cinematic photography, ultra detailed' },
+    { label: 'diwali sale', prompt: 'festive Diwali sale banner for ecommerce shipping brand, gift boxes with diyas, vibrant colors, modern Indian aesthetic, hero composition' },
+    { label: 'premium packaging', prompt: 'premium cardboard shipping package with branded label and twine, soft studio lighting, minimalist product photography, clean white backdrop' },
+    { label: 'automated warehouse', prompt: 'modern automated warehouse interior with conveyor belts and stacked packages, cool blue ambient lighting, wide angle, photorealistic' },
+    { label: 'monsoon courier', prompt: 'courier rider zooming through monsoon rain in Mumbai street, water splashes, dramatic atmosphere, cinematic photography, motion' },
+    { label: 'freight truck', prompt: 'freight truck on highway at sunset, golden hour, motion blur, India national highway, wide cinematic shot, atmospheric' },
+    { label: 'eco packaging', prompt: 'eco-friendly kraft paper shipping box with green ribbon and leaves, sustainability concept, soft natural light, editorial product photography' },
+    { label: 'same-day hero', prompt: 'same-day delivery hero banner, fast motion blur, package being handed over, energetic, bold typography space, modern ecommerce' },
+    { label: 'doorstep parcels', prompt: 'stack of cardboard parcels on a sunny doorstep, indian residential, warm light, cinematic still life photography' },
+    { label: 'unboxing moment', prompt: 'customer happily unboxing a package at home, cozy living room, natural light, candid lifestyle photography, indian family vibe' },
+    { label: 'kirana delivery', prompt: 'delivery van parked outside a bustling kirana store, indian neighborhood, documentary style, late afternoon light' },
+    { label: 'drone delivery', prompt: 'drone delivery package landing on rooftop, modern indian apartment, blue sky, futuristic ecommerce concept, clean photography' },
+    { label: 'holi sale', prompt: 'holi festive sale banner, vibrant color powder splashes, packages with rainbow ribbons, energetic composition, marketing hero' },
+    { label: 'last-mile scooter', prompt: 'last mile delivery scooter weaving through traffic, top-down angle, urban india, motion-blurred cars, cinematic' },
+    { label: 'barcode scan', prompt: 'warehouse worker scanning barcode on package, focused expression, industrial lighting, documentary photography, ultra sharp' },
+    { label: 'cargo plane', prompt: 'cargo plane being loaded with shipping containers at airport, dawn, dramatic lighting, wide cinematic shot, photorealistic' },
+    { label: 'truck hub at night', prompt: 'row of trucks at logistics hub at night, neon lights, drizzle, cyberpunk industrial mood, cinematic photography' },
+    { label: 'fragile package', prompt: 'bubble-wrapped fragile package with handle-with-care label, soft studio lighting, minimal product photography, clean backdrop' },
+    { label: 'christmas gifts', prompt: 'holiday season delivery rider with wrapped gift boxes, cozy festive mood, warm tones, marketing banner composition' },
+    { label: 'tricolor banner', prompt: 'independence day patriotic delivery banner, tricolor packages, indian flag motifs, hero composition, vibrant photography' },
+    { label: 'small biz packing', prompt: 'small business owner carefully packing handmade products, cozy workshop, warm lighting, candid lifestyle photography' },
+    { label: 'EV fleet', prompt: 'fleet of electric delivery vehicles parked in row, sustainable logistics, clean modern photography, blue sky, hero shot' },
+    { label: 'cold chain truck', prompt: 'cold chain refrigerated truck on highway, frost details on the body, professional logistics photography, cinematic' },
+    { label: 'tape seal macro', prompt: 'close-up of hands sealing a cardboard box with branded packing tape, macro photography, soft studio light, ultra detailed' },
+    { label: 'rakhi sale', prompt: 'festive raksha bandhan delivery banner, rakhi gift boxes with traditional motifs, warm tones, sibling theme, ecommerce hero' },
+    { label: 'rural delivery', prompt: 'rural delivery rider on dusty village road, traditional indian setting, golden hour, documentary photography, atmospheric' },
+    { label: 'tier-2 market', prompt: 'tier-2 city marketplace with delivery boys outside small shops, indian streetscape, candid documentary, bustling daylight' },
+    { label: 'luxury unbox', prompt: 'luxury subscription box reveal moment, premium ecommerce styling, dark moody lighting, editorial photography, ultra detailed' },
+    { label: 'control room', prompt: 'busy logistics control room with screens showing delivery routes, modern data dashboards, blue ambient lighting, technology feel' },
+    { label: 'holi splash', prompt: 'package bursting with colorful holi powder splashes, dynamic motion freeze, festive marketing hero, vibrant photography' },
+    { label: 'monsoon raincoat', prompt: 'raincoat-wearing delivery boy with waterproof package in heavy rain, cinematic motion, dramatic lighting, indian street' },
+    { label: 'valentine gift', prompt: 'valentine’s day gift box with red ribbon and rose petals, romantic ecommerce hero, soft warm lighting, editorial' },
+    { label: 'dawn dock', prompt: 'dawn warehouse loading dock, trucks lined up, golden light streaming through doors, atmospheric documentary photography' },
+    { label: 'onam package', prompt: 'festive Onam sale package with banana leaves and traditional pookalam pattern, vibrant Kerala aesthetic, marketing hero' },
+    { label: 'winter delivery', prompt: 'winter morning package delivery on a cozy doorstep with steam from chai, warm lighting, indian residential, lifestyle' },
+    { label: 'subscription box flatlay', prompt: 'flatlay of curated subscription box contents, neat arrangement, brand styling, soft top-down studio light, premium ecommerce' },
+    { label: 'rickshaw delivery', prompt: 'auto rickshaw stacked with parcels in indian street, tier-2 city aesthetic, candid documentary, golden afternoon' },
+    { label: 'cycle courier', prompt: 'bicycle courier with insulated delivery bag in heritage indian street, soft golden light, candid lifestyle photography' },
+    { label: 'package x-ray', prompt: 'concept image of package being scanned through x-ray, minimal techy aesthetic, blue and white palette, marketing visual' },
+    { label: 'chai stop break', prompt: 'delivery rider taking chai break at roadside tapri, candid documentary moment, warm tones, indian street culture' },
+  ];
+
+  function pickRandomPrompts(n) {
+    const shuffled = [...PROMPT_POOL].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, n);
+  }
+
+  function escapeAttr(s) {
+    return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  function renderChips() {
+    const sample = pickRandomPrompts(8);
+    chips.innerHTML = sample.map((p, i) =>
+      `<button class="chip" style="animation-delay:${i * 25}ms" data-prompt="${escapeAttr(p.prompt)}">${escapeAttr(p.label)}</button>`
+    ).join('');
+  }
+  renderChips();
+
+  refreshChips.addEventListener('click', () => {
+    refreshChips.classList.add('spinning');
+    setTimeout(() => refreshChips.classList.remove('spinning'), 500);
+    renderChips();
   });
 
   chips.addEventListener('click', (e) => {
