@@ -21,13 +21,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px;
+    gap: 20px;
   }
-  .brand {
-    text-align: center;
-    margin-top: 6vh;
-    line-height: 0.9;
-  }
+  .brand { text-align: center; margin-top: 6vh; line-height: 0.9; }
   .brand-1 {
     font-size: clamp(48px, 9vw, 84px);
     font-weight: 800;
@@ -42,14 +38,46 @@
     color: #b3ab9b;
     margin-top: 4px;
   }
-  .sub {
-    font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #6b6558;
+
+  /* Model switcher */
+  .model-switcher {
+    display: inline-flex;
+    background: #161513;
+    border: 1px solid #2e2d2a;
+    border-radius: 999px;
+    padding: 4px;
+    gap: 4px;
   }
-  .sub b { color: #ff5e1f; font-weight: 600; }
+  .model-opt {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: #6b6558;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 999px;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .model-opt:hover { color: #b3ab9b; }
+  .model-opt.active {
+    background: #ff5e1f;
+    color: #1a0a00;
+  }
+  .model-opt.active.premium {
+    background: #ffb800;
+  }
+  .model-meta {
+    font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+    font-size: 10px;
+    opacity: 0.7;
+    font-weight: 400;
+  }
+  .model-opt.active .model-meta { opacity: 0.7; }
 
   /* Prompt chips */
   .suggestions {
@@ -66,11 +94,7 @@
     text-transform: uppercase;
     color: #6b6558;
   }
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip {
     background: #1c1b18;
     color: #b3ab9b;
@@ -83,20 +107,11 @@
     transition: all 0.15s;
     white-space: nowrap;
   }
-  .chip:hover {
-    background: #232220;
-    border-color: #ff5e1f;
-    color: #f4ede0;
-  }
+  .chip:hover { background: #232220; border-color: #ff5e1f; color: #f4ede0; }
   .chip:active { transform: translateY(1px); }
 
   /* Form */
-  form {
-    width: 100%;
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
-  }
+  form { width: 100%; display: flex; gap: 8px; margin-top: 4px; }
   input[type="text"] {
     flex: 1;
     background: #1c1b18;
@@ -130,6 +145,7 @@
     align-items: center;
     gap: 8px;
   }
+  button.gen.premium { background: #ffb800; box-shadow: 0 8px 24px rgba(255,184,0,0.25); }
   button.gen:hover:not(:disabled) { transform: translateY(-2px); }
   button.gen:active:not(:disabled) { transform: translateY(0); }
   button.gen:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
@@ -177,12 +193,16 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #6b6558;
+    text-align: center;
+    max-width: 360px;
   }
   .error {
-    padding: 40px 20px;
+    padding: 28px 24px;
     text-align: center;
     color: #f87171;
     font-size: 14px;
+    line-height: 1.5;
+    word-break: break-word;
   }
   .meta {
     width: 100%;
@@ -201,6 +221,18 @@
     word-break: break-word;
   }
   .meta-prompt span { color: #6b6558; margin-right: 6px; }
+  .meta-tag {
+    background: #232220;
+    color: #ff5e1f;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-right: 8px;
+  }
+  .meta-tag.premium { color: #ffb800; }
   .download-btn {
     background: #1c1b18;
     color: #f4ede0;
@@ -215,6 +247,69 @@
     white-space: nowrap;
   }
   .download-btn:hover { background: #2e2d2a; border-color: #3d3b37; }
+
+  /* Password modal */
+  .pw-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.72);
+    backdrop-filter: blur(8px);
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .pw-overlay.show { display: flex; }
+  .pw-card {
+    background: #1c1b18;
+    border: 1px solid #2e2d2a;
+    border-radius: 18px;
+    padding: 28px;
+    max-width: 380px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .pw-card h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .pw-card p {
+    color: #b3ab9b;
+    font-size: 13px;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+  .pw-card form { display: flex; flex-direction: column; gap: 10px; }
+  .pw-card input {
+    width: 100%;
+    padding: 14px 16px;
+    background: #0e0d0b;
+    border: 1px solid #2e2d2a;
+    border-radius: 12px;
+    color: #f4ede0;
+    font-family: inherit;
+    font-size: 15px;
+  }
+  .pw-card input:focus { outline: none; border-color: #ff5e1f; box-shadow: 0 0 0 3px rgba(255,94,31,0.15); }
+  .pw-card .pw-actions { display: flex; gap: 8px; }
+  .pw-card button {
+    flex: 1;
+    padding: 13px;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .pw-card button.primary { background: #ff5e1f; color: #1a0a00; }
+  .pw-card button.ghost { background: #232220; color: #b3ab9b; border: 1px solid #2e2d2a; }
+  .pw-error {
+    color: #f87171;
+    font-size: 12px;
+    min-height: 16px;
+  }
 </style>
 </head>
 <body>
@@ -223,7 +318,15 @@
       <div class="brand-1">Nimbus</div>
       <div class="brand-2">marketing</div>
     </div>
-    <div class="sub">image gen · powered by <b>pollinations</b></div>
+
+    <div class="model-switcher" role="radiogroup" aria-label="Model">
+      <button class="model-opt active" data-model="pollinations">
+        Pollinations <span class="model-meta">free · instant</span>
+      </button>
+      <button class="model-opt premium" data-model="nano-banana">
+        Nano Banana <span class="model-meta">free 500/day</span>
+      </button>
+    </div>
 
     <div class="suggestions">
       <div class="suggestions-label">▸ try a logistics prompt</div>
@@ -246,24 +349,75 @@
 
     <div class="result empty" id="result"></div>
     <div class="meta" id="meta" style="display:none;">
-      <div class="meta-prompt"><span>prompt:</span><span id="lastPrompt"></span></div>
+      <div class="meta-prompt">
+        <span class="meta-tag" id="metaTag">FLUX</span>
+        <span>prompt:</span><span id="lastPrompt"></span>
+      </div>
       <button class="download-btn" id="downloadBtn">↓ Download</button>
     </div>
   </div>
+
+  <!-- Password modal for Nano Banana -->
+  <div class="pw-overlay" id="pwOverlay">
+    <div class="pw-card">
+      <h3>Dashboard password</h3>
+      <p>Nano Banana use karne ke liye one-time password chahiye (browser me save ho jayega).</p>
+      <form id="pwForm">
+        <input type="password" id="pwInput" placeholder="password" autocomplete="off" />
+        <div class="pw-error" id="pwError"></div>
+        <div class="pw-actions">
+          <button type="button" class="ghost" id="pwCancel">Cancel</button>
+          <button type="submit" class="primary">Unlock</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 <script>
+(() => {
   const form = document.getElementById('form');
   const promptInput = document.getElementById('prompt');
   const genBtn = document.getElementById('genBtn');
   const result = document.getElementById('result');
   const meta = document.getElementById('meta');
   const lastPromptEl = document.getElementById('lastPrompt');
+  const metaTag = document.getElementById('metaTag');
   const downloadBtn = document.getElementById('downloadBtn');
   const chips = document.getElementById('chips');
+  const switcher = document.querySelector('.model-switcher');
+  const pwOverlay = document.getElementById('pwOverlay');
+  const pwForm = document.getElementById('pwForm');
+  const pwInput = document.getElementById('pwInput');
+  const pwError = document.getElementById('pwError');
+  const pwCancel = document.getElementById('pwCancel');
+
+  // Selected model — persist in localStorage
+  let model = localStorage.getItem('nimbus_model') || 'pollinations';
+  syncModelUI();
 
   let currentImageUrl = null;
   let currentPrompt = '';
+  let currentLabel = '';
 
-  // Chip click -> fill input
+  function syncModelUI() {
+    document.querySelectorAll('.model-opt').forEach((b) => {
+      b.classList.toggle('active', b.dataset.model === model);
+    });
+    if (model === 'nano-banana') {
+      genBtn.classList.add('premium');
+    } else {
+      genBtn.classList.remove('premium');
+    }
+  }
+
+  switcher.addEventListener('click', (e) => {
+    const btn = e.target.closest('.model-opt');
+    if (!btn) return;
+    model = btn.dataset.model;
+    localStorage.setItem('nimbus_model', model);
+    syncModelUI();
+  });
+
   chips.addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
@@ -272,64 +426,161 @@
     promptInput.setSelectionRange(promptInput.value.length, promptInput.value.length);
   });
 
+  // Password gate
+  function getPassword() {
+    return localStorage.getItem('nimbus_token') || '';
+  }
+  function askPassword() {
+    return new Promise((resolve) => {
+      pwError.textContent = '';
+      pwInput.value = '';
+      pwOverlay.classList.add('show');
+      setTimeout(() => pwInput.focus(), 50);
+
+      const onSubmit = (e) => {
+        e.preventDefault();
+        const v = pwInput.value.trim();
+        if (!v) return;
+        cleanup();
+        pwOverlay.classList.remove('show');
+        resolve(v);
+      };
+      const onCancel = () => {
+        cleanup();
+        pwOverlay.classList.remove('show');
+        resolve(null);
+      };
+      function cleanup() {
+        pwForm.removeEventListener('submit', onSubmit);
+        pwCancel.removeEventListener('click', onCancel);
+      }
+      pwForm.addEventListener('submit', onSubmit);
+      pwCancel.addEventListener('click', onCancel);
+    });
+  }
+
+  // Generation flows
+  async function genPollinations(prompt) {
+    const seed = Math.floor(Math.random() * 1000000);
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve({ url, mimeType: 'image/jpeg' });
+      img.onerror = () => reject(new Error('Pollinations busy. Phir try kar.'));
+      img.src = url;
+    });
+  }
+
+  async function genNanoBanana(prompt) {
+    let token = getPassword();
+    if (!token) {
+      token = await askPassword();
+      if (!token) throw new Error('Password chahiye Nano Banana ke liye.');
+      localStorage.setItem('nimbus_token', token);
+    }
+
+    const r = await fetch('/.netlify/functions/nano-banana', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+      },
+      body: JSON.stringify({ prompt }),
+    });
+
+    if (r.status === 401) {
+      localStorage.removeItem('nimbus_token');
+      throw new Error('Wrong password. Phir try kar (model switch karke).');
+    }
+
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      throw new Error(data.error + (data.detail ? ' — ' + data.detail : ''));
+    }
+    if (!data.image) {
+      throw new Error('No image returned. ' + (data.textOutput || ''));
+    }
+    return {
+      url: `data:${data.mimeType || 'image/png'};base64,${data.image}`,
+      mimeType: data.mimeType || 'image/png',
+    };
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const prompt = promptInput.value.trim();
     if (!prompt) return;
 
     currentPrompt = prompt;
-    const seed = Math.floor(Math.random() * 1000000);
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
-    currentImageUrl = url;
+    currentLabel = model === 'nano-banana' ? 'Nano Banana' : 'FLUX';
 
     genBtn.disabled = true;
     promptInput.disabled = true;
     genBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;"></span>Generating';
     result.classList.remove('empty');
-    result.innerHTML = '<div class="loading"><div class="spinner"></div><div class="loading-text">FLUX rendering · usually 5-15s</div></div>';
+    const renderText = model === 'nano-banana'
+      ? 'Nano Banana rendering · Gemini 2.5 Flash · usually 5-12s'
+      : 'FLUX rendering · usually 5-15s';
+    result.innerHTML = `<div class="loading"><div class="spinner"></div><div class="loading-text">${renderText}</div></div>`;
     meta.style.display = 'none';
 
-    const img = new Image();
-    img.onload = () => {
-      result.innerHTML = '';
-      result.appendChild(img);
-      lastPromptEl.textContent = prompt;
-      meta.style.display = 'flex';
+    try {
+      const { url } = model === 'nano-banana' ? await genNanoBanana(prompt) : await genPollinations(prompt);
+      currentImageUrl = url;
+      const img = new Image();
+      img.onload = () => {
+        result.innerHTML = '';
+        result.appendChild(img);
+        lastPromptEl.textContent = prompt;
+        metaTag.textContent = currentLabel;
+        metaTag.classList.toggle('premium', model === 'nano-banana');
+        meta.style.display = 'flex';
+      };
+      img.onerror = () => {
+        result.innerHTML = '<div class="error">Image load nahi hui. Try again.</div>';
+      };
+      img.src = url;
+    } catch (err) {
+      result.innerHTML = '<div class="error">' + (err.message || 'Generate fail.') + '</div>';
+    } finally {
       genBtn.disabled = false;
       promptInput.disabled = false;
       genBtn.textContent = 'Generate';
-    };
-    img.onerror = () => {
-      result.innerHTML = '<div class="error">Image generate nahi ho payi. Pollinations busy ho sakta — phir try kar.</div>';
-      genBtn.disabled = false;
-      promptInput.disabled = false;
-      genBtn.textContent = 'Generate';
-    };
-    img.src = url;
+    }
   });
 
   downloadBtn.addEventListener('click', async () => {
     if (!currentImageUrl) return;
     downloadBtn.textContent = '↓ ...';
     try {
-      const blob = await fetch(currentImageUrl).then(r => r.blob());
+      let blob;
+      if (currentImageUrl.startsWith('data:')) {
+        // base64 data URL — convert directly
+        const res = await fetch(currentImageUrl);
+        blob = await res.blob();
+      } else {
+        blob = await fetch(currentImageUrl).then((r) => r.blob());
+      }
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       const safeName = currentPrompt.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50);
-      a.download = `nimbus-${safeName}-${Date.now()}.jpg`;
+      const ext = blob.type.includes('png') ? 'png' : 'jpg';
+      a.download = `nimbus-${safeName}-${Date.now()}.${ext}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(a.href);
       downloadBtn.textContent = '↓ Saved';
-      setTimeout(() => downloadBtn.textContent = '↓ Download', 1200);
+      setTimeout(() => (downloadBtn.textContent = '↓ Download'), 1200);
     } catch {
       downloadBtn.textContent = '✕ Failed';
-      setTimeout(() => downloadBtn.textContent = '↓ Download', 1500);
+      setTimeout(() => (downloadBtn.textContent = '↓ Download'), 1500);
     }
   });
 
   promptInput.focus();
+})();
 </script>
 </body>
 </html>
