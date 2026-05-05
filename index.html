@@ -472,31 +472,37 @@
     });
   }
 
-  async function genNanoBanana(prompt) {
-    let token = getPassword();
-    if (!token) {
-      token = await askPassword();
-      if (!token) throw new Error('Password chahiye Nano Banana ke liye.');
-      localStorage.setItem('nimbus_token', token);
-    }
-
-    const r = await fetch('/.netlify/functions/nano-banana', {
+  async function callNanoBanana(prompt, token) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    return fetch('/.netlify/functions/nano-banana', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token,
-      },
+      headers,
       body: JSON.stringify({ prompt }),
     });
+  }
 
+  async function genNanoBanana(prompt) {
+    // First attempt — use stored token if any, else no auth header.
+    // The server only enforces auth if DASHBOARD_PASSWORD env var is set.
+    let token = getPassword();
+    let r = await callNanoBanana(prompt, token);
+
+    // 401 means server has password set and we need to ask user
     if (r.status === 401) {
       localStorage.removeItem('nimbus_token');
-      throw new Error('Wrong password. Phir try kar (model switch karke).');
+      token = await askPassword();
+      if (!token) throw new Error('Password chahiye Nano Banana ke liye.');
+      r = await callNanoBanana(prompt, token);
+      if (r.status === 401) {
+        throw new Error('Wrong password.');
+      }
+      localStorage.setItem('nimbus_token', token);
     }
 
     const data = await r.json().catch(() => ({}));
     if (!r.ok) {
-      throw new Error(data.error + (data.detail ? ' — ' + data.detail : ''));
+      throw new Error((data.error || 'Request failed') + (data.detail ? ' — ' + data.detail : ''));
     }
     if (!data.image) {
       throw new Error('No image returned. ' + (data.textOutput || ''));

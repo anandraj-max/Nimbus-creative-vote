@@ -35,15 +35,14 @@ exports.handler = async (event) => {
     return json(405, { error: 'Method not allowed' });
   }
 
-  // Auth gate
+  // Auth gate (optional — only enforced if DASHBOARD_PASSWORD env var is set)
   const expected = process.env.DASHBOARD_PASSWORD;
-  if (!expected) {
-    return json(500, { error: 'Server not configured: DASHBOARD_PASSWORD missing' });
-  }
-  const auth = event.headers.authorization || event.headers.Authorization || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-  if (token !== expected) {
-    return json(401, { error: 'Unauthorized — wrong or missing password' });
+  if (expected) {
+    const auth = event.headers.authorization || event.headers.Authorization || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    if (token !== expected) {
+      return json(401, { error: 'Unauthorized — wrong or missing password' });
+    }
   }
 
   // API key
